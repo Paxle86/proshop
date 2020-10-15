@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { Row, Col, ListGroup, Image, Form, Button, Card } from 'react-bootstrap'
 import Message from '../components/Message'
-import { addToCard } from '../actions/cartActions'
+import { addToCart, removeFromCart } from '../actions/cartActions'
 
 const CartScreen = ({ match, location, history }) => {
 	const productId = match.params.id
@@ -13,11 +13,15 @@ const CartScreen = ({ match, location, history }) => {
 	const { cartItems } = cart
 	useEffect(() => {
 		if (productId) {
-			dispatch(addToCard(productId, qty))
+			dispatch(addToCart(productId, qty))
 		}
 	}, [dispatch, productId, qty])
 	const removeFromCartHandler = (id) => {
-		console.log('removed')
+		dispatch(removeFromCart(id))
+	}
+
+	const checkoutHandler = () => {
+		history.push('/login?redirect=shipping')
 	}
 	return (
 		<Row>
@@ -42,10 +46,10 @@ const CartScreen = ({ match, location, history }) => {
 									<Col md={2}>
 										<Form.Control
 											as='select'
-											value={qty}
+											value={item.qty}
 											onChange={(e) =>
 												dispatch(
-													addToCard(item.product, Number(e.targer.value))
+													addToCart(item.product, Number(e.target.value))
 												)
 											}
 										>
@@ -60,7 +64,7 @@ const CartScreen = ({ match, location, history }) => {
 										<Button
 											type='button'
 											variant='light'
-											onclick={() => removeFromCartHandler(item.product)}
+											onClick={() => removeFromCartHandler(item.product)}
 										>
 											<i className='fas fa-trash' />
 										</Button>
@@ -71,8 +75,32 @@ const CartScreen = ({ match, location, history }) => {
 					</ListGroup>
 				)}
 			</Col>
-			<Col dm={2}></Col>
-			<Col md={2}></Col>
+			<Col md={4}>
+				<Card>
+					<ListGroup variant='flush'>
+						<ListGroup.Item>
+							<h5>
+								Subtotal ({cartItems.reduce((acc, item) => acc + item.qty, 0)})
+								items
+							</h5>
+							$
+							{cartItems
+								.reduce((acc, item) => acc + item.qty * item.price, 0)
+								.toFixed(2)}
+						</ListGroup.Item>
+						<ListGroup.Item>
+							<Button
+								type='button'
+								className='btn-block'
+								disabled={cartItems.length === 0}
+								onClick={checkoutHandler}
+							>
+								Proceed To Checkout
+							</Button>
+						</ListGroup.Item>
+					</ListGroup>
+				</Card>
+			</Col>
 		</Row>
 	)
 }
